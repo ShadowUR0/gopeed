@@ -24,6 +24,11 @@ class _HistoryViewState extends State<HistoryView> {
     final Size size = MediaQuery.sizeOf(context);
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
+    final historyTheme = theme.copyWith(
+      colorScheme: theme.colorScheme.copyWith(
+        surface: dark ? const Color(0x48151E1B) : const Color(0x56FFFFFF),
+      ),
+    );
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -112,7 +117,12 @@ class _HistoryViewState extends State<HistoryView> {
                                 ),
                               ]
                             : <Widget>[
-                                Expanded(child: widget.historyList),
+                                Expanded(
+                                  child: Theme(
+                                    data: historyTheme,
+                                    child: widget.historyList,
+                                  ),
+                                ),
                               ],
                       ),
                     ),
