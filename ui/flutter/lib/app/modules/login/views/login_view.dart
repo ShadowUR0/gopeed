@@ -70,7 +70,7 @@ class LoginView extends GetView<LoginController> {
                         ),
                         SizedBox(height: isNarrow ? 30 : 38),
                         FocusTraversalOrder(
-                          order: const NumericFocusOrder(1),
+                          order: const NumericFocusOrder(1.0),
                           child: TextFormField(
                             controller: controller.usernameController,
                             autofillHints: const [AutofillHints.username],
@@ -90,7 +90,7 @@ class LoginView extends GetView<LoginController> {
                         ),
                         const SizedBox(height: 16),
                         FocusTraversalOrder(
-                          order: const NumericFocusOrder(2),
+                          order: const NumericFocusOrder(2.0),
                           child: Obx(
                             () => TextFormField(
                               controller: controller.passwordController,
