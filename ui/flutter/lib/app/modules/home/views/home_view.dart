@@ -27,8 +27,13 @@ class HomeView extends GetView<HomeController> {
       final items = <LiquidNavigationItem>[
         LiquidNavigationItem(icon: Icons.task_rounded, label: 'task'.tr),
         LiquidNavigationItem(
-            icon: Icons.extension_rounded, label: 'extensions'.tr),
-        LiquidNavigationItem(icon: Icons.settings_rounded, label: 'setting'.tr),
+          icon: Icons.extension_rounded,
+          label: 'extensions'.tr,
+        ),
+        LiquidNavigationItem(
+          icon: Icons.settings_rounded,
+          label: 'setting'.tr,
+        ),
       ];
 
       void navigate(int index) {
@@ -47,6 +52,7 @@ class HomeView extends GetView<HomeController> {
       }
 
       final narrow = ResponsiveBuilder.isNarrow(context);
+      final routes = GetRouterOutlet(initialRoute: Routes.TASK);
 
       return Scaffold(
         backgroundColor: Colors.transparent,
@@ -60,10 +66,22 @@ class HomeView extends GetView<HomeController> {
                     onSelected: navigate,
                   )),
             Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(narrow ? 0 : 10, 0, narrow ? 0 : 12, 0),
-                child: GetRouterOutlet(initialRoute: Routes.TASK),
-              ),
+              child: narrow
+                  ? routes
+                  : Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 12, 12, 12),
+                      child: LiquidGlassSurface(
+                        radius: 30,
+                        blur: 14,
+                        tint: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0x30141E1B)
+                            : const Color(0x38FFFFFF),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(29),
+                          child: routes,
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
