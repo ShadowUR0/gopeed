@@ -166,99 +166,106 @@ class _LiquidGlassSurfaceState extends State<LiquidGlassSurface> {
     );
     final tint = widget.tint ?? LiquidGlassPalette.glassTint(brightness);
     final accent = theme.colorScheme.primary;
+    final handlesGestures = widget.interactive || widget.onTap != null;
+
+    final surface = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(dark ? 0.26 : 0.90),
+            accent.withOpacity(dark ? 0.20 : 0.24),
+            Colors.white.withOpacity(dark ? 0.08 : 0.32),
+            Colors.black.withOpacity(dark ? 0.24 : 0.07),
+          ],
+          stops: const [0, 0.28, 0.62, 1],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(dark ? 0.26 : 0.10),
+            blurRadius: _pressed ? 22 : 16,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(dark ? 0.03 : 0.30),
+            blurRadius: 8,
+            offset: const Offset(-2, -2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: ClipRRect(
+          borderRadius: innerRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: tint,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(dark ? 0.07 : 0.32),
+                          tint,
+                          accent.withOpacity(dark ? 0.055 : 0.045),
+                          Colors.black.withOpacity(dark ? 0.08 : 0.015),
+                        ],
+                        stops: const [0, 0.30, 0.72, 1],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: AnimatedOpacity(
+                    opacity: _pressed ? 1 : 0.62,
+                    duration: const Duration(milliseconds: 160),
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: const Alignment(-0.65, -0.9),
+                            radius: 1.25,
+                            colors: [
+                              Colors.white.withOpacity(dark ? 0.20 : 0.54),
+                              Colors.transparent,
+                            ],
+                            stops: const [0, 0.62],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(padding: widget.padding, child: widget.child),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final content = handlesGestures
+        ? GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (_) => _setPressed(true),
+            onTapCancel: () => _setPressed(false),
+            onTapUp: (_) => _setPressed(false),
+            onTap: widget.onTap,
+            child: surface,
+          )
+        : surface;
 
     return AnimatedScale(
       scale: _pressed ? 1.016 : 1,
       duration: const Duration(milliseconds: 170),
       curve: Curves.easeOutBack,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => _setPressed(true),
-        onTapCancel: () => _setPressed(false),
-        onTapUp: (_) => _setPressed(false),
-        onTap: widget.onTap,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(dark ? 0.26 : 0.90),
-                accent.withOpacity(dark ? 0.20 : 0.24),
-                Colors.white.withOpacity(dark ? 0.08 : 0.32),
-                Colors.black.withOpacity(dark ? 0.24 : 0.07),
-              ],
-              stops: const [0, 0.28, 0.62, 1],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(dark ? 0.26 : 0.10),
-                blurRadius: _pressed ? 22 : 16,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: Colors.white.withOpacity(dark ? 0.03 : 0.30),
-                blurRadius: 8,
-                offset: const Offset(-2, -2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(1),
-            child: ClipRRect(
-              borderRadius: innerRadius,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: tint,
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withOpacity(dark ? 0.07 : 0.32),
-                              tint,
-                              accent.withOpacity(dark ? 0.055 : 0.045),
-                              Colors.black.withOpacity(dark ? 0.08 : 0.015),
-                            ],
-                            stops: const [0, 0.30, 0.72, 1],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: AnimatedOpacity(
-                        opacity: _pressed ? 1 : 0.62,
-                        duration: const Duration(milliseconds: 160),
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: RadialGradient(
-                                center: const Alignment(-0.65, -0.9),
-                                radius: 1.25,
-                                colors: [
-                                  Colors.white.withOpacity(dark ? 0.20 : 0.54),
-                                  Colors.transparent,
-                                ],
-                                stops: const [0, 0.62],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(padding: widget.padding, child: widget.child),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+      child: content,
     );
   }
 }
