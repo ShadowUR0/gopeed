@@ -9,6 +9,7 @@ import '../../../../api/model/create_task_batch.dart';
 import '../../../../api/model/options.dart';
 import '../../../../api/model/resolve_result.dart';
 import '../../../../api/model/resolve_task.dart';
+import '../../../../theme/liquid_glass.dart';
 import '../../../../util/message.dart';
 import '../../../views/directory_selector.dart';
 import '../../app/controllers/app_controller.dart';
@@ -203,68 +204,94 @@ class _CreateDialogViewState extends State<CreateDialogView> {
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Center(
-          child: Material(
-            color: theme.colorScheme.surface,
-            elevation: 16,
-            borderRadius: BorderRadius.circular(8),
-            clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: LiquidGlassSurface(
+                radius: 30,
+                blur: 28,
+                padding: const EdgeInsets.fromLTRB(22, 18, 22, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            Icons.add_rounded,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'create'.tr,
-                            style: theme.textTheme.titleMedium,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close_rounded),
                           onPressed: _creating ? null : SystemNavigator.pop,
                           tooltip: 'cancel'.tr,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    if (_resolving)
-                      const LinearProgressIndicator(minHeight: 2)
-                    else
-                      const SizedBox(height: 2),
                     const SizedBox(height: 14),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _resolving
+                          ? const LinearProgressIndicator(key: ValueKey('loading'))
+                          : const SizedBox(key: ValueKey('idle'), height: 3),
+                    ),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _nameController,
                       enabled: !_creating,
                       decoration: InputDecoration(
                         labelText: 'rename'.tr,
-                        prefixIcon: const Icon(Icons.insert_drive_file),
+                        prefixIcon: const Icon(Icons.insert_drive_file_rounded),
                       ),
                       maxLines: 1,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     DirectorySelector(
                       controller: _pathController,
                       showAndoirdToggle: true,
                       allowEdit: true,
                     ),
                     if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _error.toString(),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.error,
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.errorContainer.withOpacity(0.55),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.colorScheme.error.withOpacity(0.25),
+                          ),
                         ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          _error.toString(),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 22),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -272,18 +299,17 @@ class _CreateDialogViewState extends State<CreateDialogView> {
                           onPressed: _creating ? null : SystemNavigator.pop,
                           child: Text('cancel'.tr),
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
+                        const SizedBox(width: 10),
+                        FilledButton.icon(
                           onPressed:
                               (_resolving || _creating) ? null : _confirm,
-                          child: _creating
+                          icon: _creating
                               ? const SizedBox.square(
                                   dimension: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
+                                  child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : Text('download'.tr),
+                              : const Icon(Icons.download_rounded),
+                          label: Text('download'.tr),
                         ),
                       ],
                     ),
