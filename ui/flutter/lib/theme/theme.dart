@@ -1,41 +1,213 @@
 import 'package:flutter/material.dart';
 
+import 'liquid_glass.dart';
+
 class GopeedTheme {
-  static const _gopeedreenPrimaryValue = 0xFF79C476;
-  static const _gopeedreen =
-      MaterialColor(_gopeedreenPrimaryValue, <int, Color>{
-    50: Color(0xFFEFF8EF),
-    100: Color(0xFFD7EDD6),
-    200: Color(0xFFBCE2BB),
-    300: Color(0xFFA1D69F),
-    400: Color(0xFF8DCD8B),
-    500: Color(_gopeedreenPrimaryValue),
-    600: Color(0xFF71BE6E),
-    700: Color(0xFF66B663),
-    800: Color(0xFF5CAF59),
-    900: Color(0xFF49A246),
-  });
+  static ThemeData _build(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    final scheme = ColorScheme.fromSeed(
+      seedColor: LiquidGlassPalette.accent,
+      brightness: brightness,
+      surface: dark ? const Color(0xFF121A18) : const Color(0xFFF7FBF9),
+    );
 
-  static const _gopeedreenAccentValue = 0xFFC9FFC7;
-  static const _gopeedreenAccent =
-      MaterialColor(_gopeedreenAccentValue, <int, Color>{
-    100: Color(0xFFFAFFFA),
-    200: Color(_gopeedreenAccentValue),
-    400: Color(0xFF97FF94),
-    700: Color(0xFF7FFF7A),
-  });
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: Colors.transparent,
+      canvasColor: Colors.transparent,
+      splashFactory: InkSparkle.splashFactory,
+    );
 
-  static final _light = ThemeData(
-      useMaterial3: false,
-      brightness: Brightness.light,
-      primarySwatch: _gopeedreen);
-  static final light = _light.copyWith(
-      colorScheme: _light.colorScheme.copyWith(secondary: _gopeedreenAccent));
+    final glass = LiquidGlassPalette.glassTint(brightness);
+    final strongGlass = LiquidGlassPalette.strongGlassTint(brightness);
+    final outline = LiquidGlassPalette.border(brightness);
+    final radius16 = BorderRadius.circular(16);
+    final radius20 = BorderRadius.circular(20);
+    final radius24 = BorderRadius.circular(24);
 
-  static final _dark = ThemeData(
-      useMaterial3: false,
-      brightness: Brightness.dark,
-      primarySwatch: _gopeedreen);
-  static final dark = _dark.copyWith(
-      colorScheme: _dark.colorScheme.copyWith(secondary: _gopeedreenAccent));
+    return base.copyWith(
+      scaffoldBackgroundColor: Colors.transparent,
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: scheme.onSurface,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: glass,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.black.withOpacity(dark ? 0.18 : 0.07),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        shape: RoundedRectangleBorder(
+          borderRadius: radius20,
+          side: BorderSide(color: outline.withOpacity(dark ? 0.65 : 0.70)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        elevation: 0,
+        backgroundColor: strongGlass,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.black.withOpacity(dark ? 0.30 : 0.12),
+        shape: RoundedRectangleBorder(
+          borderRadius: radius24,
+          side: BorderSide(color: outline.withOpacity(0.70)),
+        ),
+      ),
+      drawerTheme: DrawerThemeData(
+        elevation: 0,
+        backgroundColor: strongGlass,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.horizontal(left: Radius.circular(28)),
+          side: BorderSide(color: outline.withOpacity(0.65)),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        elevation: 0,
+        modalElevation: 0,
+        backgroundColor: strongGlass,
+        modalBackgroundColor: strongGlass,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
+        backgroundColor: strongGlass,
+        foregroundColor: scheme.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(color: outline.withOpacity(0.72)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: glass,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: radius16,
+          borderSide: BorderSide(color: outline.withOpacity(0.65)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius16,
+          borderSide: BorderSide(color: outline.withOpacity(0.58)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: radius16,
+          borderSide: BorderSide(color: scheme.primary.withOpacity(0.85), width: 1.4),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: radius20),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: strongGlass,
+          foregroundColor: scheme.onSurface,
+          surfaceTintColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: radius20,
+            side: BorderSide(color: outline.withOpacity(0.60)),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          side: BorderSide(color: outline.withOpacity(0.75)),
+          shape: RoundedRectangleBorder(borderRadius: radius20),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          shape: MaterialStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          overlayColor: MaterialStatePropertyAll(scheme.primary.withOpacity(0.10)),
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelColor: scheme.primary,
+        unselectedLabelColor: scheme.onSurface.withOpacity(0.58),
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: scheme.primary.withOpacity(dark ? 0.18 : 0.13),
+          border: Border.all(color: outline.withOpacity(0.42)),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: scheme.onSurface.withOpacity(0.72),
+        shape: RoundedRectangleBorder(borderRadius: radius16),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        elevation: 0,
+        color: strongGlass,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius20,
+          side: BorderSide(color: outline.withOpacity(0.65)),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: scheme.onSurface.withOpacity(dark ? 0.10 : 0.08),
+        thickness: 1,
+        space: 1,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: scheme.primary,
+        linearTrackColor: scheme.onSurface.withOpacity(0.08),
+        linearMinHeight: 3,
+        borderRadius: BorderRadius.circular(99),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        side: BorderSide(color: outline.withOpacity(0.80)),
+      ),
+      switchTheme: SwitchThemeData(
+        trackOutlineColor: MaterialStatePropertyAll(outline.withOpacity(0.45)),
+        thumbColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) return scheme.primary;
+          return scheme.onSurface.withOpacity(0.75);
+        }),
+        trackColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return scheme.primary.withOpacity(0.28);
+          }
+          return scheme.onSurface.withOpacity(0.10);
+        }),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: Colors.transparent,
+        indicatorColor: scheme.primary.withOpacity(0.14),
+        selectedIconTheme: IconThemeData(color: scheme.primary),
+        selectedLabelTextStyle: TextStyle(color: scheme.primary),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: scheme.primary,
+        unselectedItemColor: scheme.onSurface.withOpacity(0.58),
+      ),
+    );
+  }
+
+  static final ThemeData light = _build(Brightness.light);
+  static final ThemeData dark = _build(Brightness.dark);
 }
