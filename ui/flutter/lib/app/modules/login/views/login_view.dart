@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
+import '../../../../theme/liquid_controls.dart';
 import '../../../../theme/liquid_glass.dart';
 import '../../../views/responsive_builder.dart';
 import '../controllers/login_controller.dart';
@@ -61,7 +62,8 @@ class LoginView extends GetView<LoginController> {
                                 width: 36,
                                 height: 3,
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withOpacity(0.70),
+                                  color:
+                                      theme.colorScheme.primary.withOpacity(0.70),
                                   borderRadius: BorderRadius.circular(99),
                                 ),
                               ),
@@ -78,7 +80,8 @@ class LoginView extends GetView<LoginController> {
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               labelText: 'username'.tr,
-                              prefixIcon: const Icon(Icons.person_outline_rounded),
+                              prefixIcon:
+                                  const Icon(Icons.person_outline_rounded),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -100,9 +103,11 @@ class LoginView extends GetView<LoginController> {
                               onFieldSubmitted: (_) => controller.login(),
                               decoration: InputDecoration(
                                 labelText: 'password'.tr,
-                                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                                prefixIcon:
+                                    const Icon(Icons.lock_outline_rounded),
                                 suffixIcon: IconButton(
-                                  onPressed: controller.togglePasswordVisibility,
+                                  onPressed:
+                                      controller.togglePasswordVisibility,
                                   icon: Icon(
                                     controller.passwordVisible.value
                                         ? Icons.visibility_off_rounded
@@ -121,31 +126,22 @@ class LoginView extends GetView<LoginController> {
                         ),
                         SizedBox(height: isNarrow ? 24 : 30),
                         Obx(
-                          () => FilledButton(
-                            onPressed: controller.isLoading.value
-                                ? null
-                                : controller.login,
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size.fromHeight(52),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
+                          () => SizedBox(
+                            height: 54,
+                            child: LiquidGlassButton(
+                              onPressed: controller.isLoading.value
+                                  ? null
+                                  : controller.login,
+                              child: controller.isLoading.value
+                                  ? SizedBox.square(
+                                      dimension: 21,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.3,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    )
+                                  : Text('login'.tr),
                             ),
-                            child: controller.isLoading.value
-                                ? SizedBox.square(
-                                    dimension: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.4,
-                                      color: theme.colorScheme.onPrimary,
-                                    ),
-                                  )
-                                : Text(
-                                    'login'.tr,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
                           ),
                         ),
                       ],
