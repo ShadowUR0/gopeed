@@ -4,6 +4,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 
 import '../../../../api/model/task.dart';
+import '../../../../theme/liquid_glass.dart';
 import '../../../../util/file_explorer.dart';
 import '../../../../util/util.dart';
 import '../../../routes/app_pages.dart';
@@ -33,39 +34,52 @@ class TaskView extends GetView<TaskController> {
       length: 2,
       child: Scaffold(
         key: controller.scaffoldKey,
-        appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(56),
-            child: AppBar(
-              bottom: TabBar(
-                tabs: const [
-                  Tab(
-                    icon: Icon(Icons.file_download),
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          toolbarHeight: 0,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(66),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+              child: LiquidGlassSurface(
+                radius: 26,
+                blur: 22,
+                padding: const EdgeInsets.all(4),
+                child: SizedBox(
+                  height: 48,
+                  child: TabBar(
+                    tabs: const [
+                      Tab(icon: Icon(Icons.file_download_rounded)),
+                      Tab(icon: Icon(Icons.done_rounded)),
+                    ],
+                    onTap: (index) {
+                      if (controller.tabIndex.value != index) {
+                        controller.tabIndex.value = index;
+                        final downloadingController =
+                            Get.find<TaskDownloadingController>();
+                        final downloadedController =
+                            Get.find<TaskDownloadedController>();
+                        switch (index) {
+                          case 0:
+                            downloadingController.start();
+                            downloadedController.stop();
+                            break;
+                          case 1:
+                            downloadingController.stop();
+                            downloadedController.start();
+                            break;
+                        }
+                      }
+                    },
                   ),
-                  Tab(
-                    icon: Icon(Icons.done),
-                  ),
-                ],
-                onTap: (index) {
-                  if (controller.tabIndex.value != index) {
-                    controller.tabIndex.value = index;
-                    final downloadingController =
-                        Get.find<TaskDownloadingController>();
-                    final downloadedController =
-                        Get.find<TaskDownloadedController>();
-                    switch (index) {
-                      case 0:
-                        downloadingController.start();
-                        downloadedController.stop();
-                        break;
-                      case 1:
-                        downloadingController.stop();
-                        downloadedController.start();
-                        break;
-                    }
-                  }
-                },
+                ),
               ),
-            )),
+            ),
+          ),
+        ),
         body: const TabBarView(
           children: [
             TaskDownloadingView(),
@@ -73,11 +87,7 @@ class TaskView extends GetView<TaskController> {
           ],
         ),
         endDrawer: Drawer(
-          // Add a ListView to the drawer. This ensures the user can scroll
-          // through the options in the drawer if there isn't enough vertical
-          // space to fit everything.
           child: Obx(() => ListView(
-                // Important: Remove any padding from the ListView.
                 padding: EdgeInsets.zero,
                 children: [
                   SizedBox(
@@ -93,7 +103,8 @@ class TaskView extends GetView<TaskController> {
                       subtitle: buildTooltipSubtitle(selectTask.value?.name)),
                   ListTile(
                     title: Text('taskUrl'.tr),
-                    subtitle: buildTooltipSubtitle(_displayTaskUrl(selectTask.value)),
+                    subtitle:
+                        buildTooltipSubtitle(_displayTaskUrl(selectTask.value)),
                     trailing: CopyButton(_displayTaskUrl(selectTask.value)),
                   ),
                   ListTile(
@@ -101,7 +112,7 @@ class TaskView extends GetView<TaskController> {
                     subtitle:
                         buildTooltipSubtitle(selectTask.value?.explorerUrl),
                     trailing: IconButton(
-                      icon: const Icon(Icons.folder_open),
+                      icon: const Icon(Icons.folder_open_rounded),
                       onPressed: () {
                         selectTask.value?.explorer();
                       },
