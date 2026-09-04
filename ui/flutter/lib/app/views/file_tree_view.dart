@@ -1,10 +1,10 @@
 import 'package:checkable_treeview/checkable_treeview.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:toggle_switch/toggle_switch.dart';
 
 import '../../api/model/resource.dart';
 import '../../icon/gopeed_icons.dart';
+import '../../theme/liquid_controls.dart';
 import '../../util/util.dart';
 import 'file_icon.dart';
 import 'responsive_builder.dart';
@@ -22,12 +22,12 @@ class FileTreeView extends StatefulWidget {
   final List<int> initialValues;
   final Function(List<int>) onSelectionChanged;
 
-  const FileTreeView(
-      {Key? key,
-      required this.files,
-      required this.initialValues,
-      required this.onSelectionChanged})
-      : super(key: key);
+  const FileTreeView({
+    Key? key,
+    required this.files,
+    required this.initialValues,
+    required this.onSelectionChanged,
+  }) : super(key: key);
 
   @override
   State<FileTreeView> createState() => _FileTreeViewState();
@@ -54,34 +54,32 @@ class _FileTreeViewState extends State<FileTreeView> {
             widget.files.length;
     final selectedFileSize = calcSelectedSize(null);
 
-    final filterRow = InkWell(
-      onTap: () {},
-      child: ToggleSwitch(
-        minHeight: 32,
-        cornerRadius: 8,
-        doubleTapDisable: true,
-        inactiveBgColor: Theme.of(context).dividerColor,
-        activeBgColor: [Theme.of(context).colorScheme.primary],
-        initialLabelIndex: toggleSwitchIndex,
-        icons: _toggleSwitchIcons,
-        onToggle: (index) {
-          toggleSwitchIndex = index;
-          if (index == null) {
-            key.currentState?.setSelectedValues(List.empty());
-            return;
-          }
+    final filterRow = LiquidGlassSegmentedControl(
+      selectedIndex: toggleSwitchIndex,
+      allowEmptySelection: true,
+      height: 40,
+      itemWidth: 44,
+      items: _toggleSwitchIcons
+          .map((icon) => LiquidSegmentItem(icon: icon))
+          .toList(),
+      onChanged: (index) {
+        setState(() => toggleSwitchIndex = index);
+        if (index == null) {
+          key.currentState?.setSelectedValues(List.empty());
+          return;
+        }
 
-          final iconFileExtArr = iconConfigMap[_toggleSwitchIcons[index]] ?? [];
-          final selectedFileIndexes = widget.files
-              .asMap()
-              .entries
-              .where((e) => iconFileExtArr.contains(fileExt(e.value.name)))
-              .map((e) => e.key)
-              .toList();
-          key.currentState?.setSelectedValues(selectedFileIndexes);
-        },
-      ),
+        final iconFileExtArr = iconConfigMap[_toggleSwitchIcons[index]] ?? [];
+        final selectedFileIndexes = widget.files
+            .asMap()
+            .entries
+            .where((e) => iconFileExtArr.contains(fileExt(e.value.name)))
+            .map((e) => e.key)
+            .toList();
+        key.currentState?.setSelectedValues(selectedFileIndexes);
+      },
     );
+
     final countRow = Row(
       children: [
         Text('fileSelectedCount'.tr),
@@ -100,90 +98,100 @@ class _FileTreeViewState extends State<FileTreeView> {
       ],
     );
 
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(4),
+              color: theme.colorScheme.surface.withOpacity(
+                theme.brightness == Brightness.dark ? 0.12 : 0.20,
+              ),
+              border: Border.all(
+                color: theme.colorScheme.onSurface.withOpacity(0.10),
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: TreeView(
-              key: key,
-              nodes: buildTreeNodes(),
-              showExpandCollapseButton: true,
-              showSelectAll: true,
-              onSelectionChanged: (selectedValues) {
-                setState(() {});
-                widget.onSelectionChanged(selectedValues
-                    .where((e) => e != null)
-                    .map((e) => e!)
-                    .toList());
-              },
-              selectAllTrailing: (context) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text('name'.tr),
-                        SortIconButton(
-                          onStateChanged: (state) {
-                            switch (state) {
-                              case SortState.asc:
-                                key.currentState?.sort((p0, p1) {
-                                  return (p0.label as Text)
-                                      .data!
-                                      .compareTo((p1.label as Text).data!);
-                                });
-                                break;
-                              case SortState.desc:
-                                key.currentState?.sort((p0, p1) {
-                                  return (p1.label as Text)
-                                      .data!
-                                      .compareTo((p0.label as Text).data!);
-                                });
-                                break;
-                              default:
-                                key.currentState?.sort(null);
-                                break;
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text('size'.tr),
-                        SortIconButton(
-                          onStateChanged: (state) {
-                            switch (state) {
-                              case SortState.asc:
-                                key.currentState?.sort((p0, p1) {
-                                  return calcSelectedSize(p0)
-                                      .compareTo(calcSelectedSize(p1));
-                                });
-                                break;
-                              case SortState.desc:
-                                key.currentState?.sort((p0, p1) {
-                                  return calcSelectedSize(p1)
-                                      .compareTo(calcSelectedSize(p0));
-                                });
-                                break;
-                              default:
-                                key.currentState?.sort(null);
-                                break;
-                            }
-                          },
-                        ),
-                      ],
-                    )
-                  ],
-                );
-              },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: TreeView(
+                key: key,
+                nodes: buildTreeNodes(),
+                showExpandCollapseButton: true,
+                showSelectAll: true,
+                onSelectionChanged: (selectedValues) {
+                  setState(() {});
+                  widget.onSelectionChanged(selectedValues
+                      .where((e) => e != null)
+                      .map((e) => e!)
+                      .toList());
+                },
+                selectAllTrailing: (context) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text('name'.tr),
+                          SortIconButton(
+                            onStateChanged: (state) {
+                              switch (state) {
+                                case SortState.asc:
+                                  key.currentState?.sort((p0, p1) {
+                                    return (p0.label as Text)
+                                        .data!
+                                        .compareTo((p1.label as Text).data!);
+                                  });
+                                  break;
+                                case SortState.desc:
+                                  key.currentState?.sort((p0, p1) {
+                                    return (p1.label as Text)
+                                        .data!
+                                        .compareTo((p0.label as Text).data!);
+                                  });
+                                  break;
+                                default:
+                                  key.currentState?.sort(null);
+                                  break;
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text('size'.tr),
+                          SortIconButton(
+                            onStateChanged: (state) {
+                              switch (state) {
+                                case SortState.asc:
+                                  key.currentState?.sort((p0, p1) {
+                                    return calcSelectedSize(p0)
+                                        .compareTo(calcSelectedSize(p1));
+                                  });
+                                  break;
+                                case SortState.desc:
+                                  key.currentState?.sort((p0, p1) {
+                                    return calcSelectedSize(p1)
+                                        .compareTo(calcSelectedSize(p0));
+                                  });
+                                  break;
+                                default:
+                                  key.currentState?.sort(null);
+                                  break;
+                              }
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -220,10 +228,11 @@ class _FileTreeViewState extends State<FileTreeView> {
         : (node.value != null
             ? [node.value]
             : key.currentState?.getChildSelectedValues(node));
-
     if (selectedFileIndexes == null) return 0;
-    return selectedFileIndexes.where((e) => e != null).map((e) => e!).fold(0,
-        (previousValue, element) => previousValue + widget.files[element].size);
+    return selectedFileIndexes.where((e) => e != null).map((e) => e!).fold(
+        0,
+        (previousValue, element) =>
+            previousValue + widget.files[element].size);
   }
 
   List<TreeNode<int>> buildTreeNodes() {
@@ -251,8 +260,10 @@ class _FileTreeViewState extends State<FileTreeView> {
             trailing: (context, node) {
               final size = calcSelectedSize(node);
               return size > 0
-                  ? Text(Util.fmtByte(calcSelectedSize(node)),
-                      style: Theme.of(context).textTheme.bodySmall)
+                  ? Text(
+                      Util.fmtByte(calcSelectedSize(node)),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    )
                   : const SizedBox(width: _sizeGapWidth);
             },
             children: [],
@@ -275,8 +286,10 @@ class _FileTreeViewState extends State<FileTreeView> {
         icon: Icon(fileIcon(file.name, isFolder: false), size: 18),
         trailing: (context, node) {
           return file.size > 0
-              ? Text(Util.fmtByte(file.size),
-                  style: Theme.of(context).textTheme.bodySmall)
+              ? Text(
+                  Util.fmtByte(file.size),
+                  style: Theme.of(context).textTheme.bodySmall,
+                )
               : const SizedBox(width: _sizeGapWidth);
         },
         isSelected: widget.initialValues.contains(i),
