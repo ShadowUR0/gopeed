@@ -29,7 +29,7 @@ class GopeedTheme {
 
     return base.copyWith(
       scaffoldBackgroundColor: Colors.transparent,
-      appBarTheme: AppBarTheme(
+      appBarTheme: AppBarThemeData(
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
@@ -89,7 +89,7 @@ class GopeedTheme {
           side: BorderSide(color: outline.withOpacity(0.72)),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: InputDecorationThemeData(
         filled: true,
         fillColor: glass,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -103,7 +103,10 @@ class GopeedTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radius16,
-          borderSide: BorderSide(color: scheme.primary.withOpacity(0.85), width: 1.4),
+          borderSide: BorderSide(
+            color: scheme.primary.withOpacity(0.85),
+            width: 1.4,
+          ),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -135,10 +138,12 @@ class GopeedTheme {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          shape: MaterialStatePropertyAll(
+          shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          overlayColor: MaterialStatePropertyAll(scheme.primary.withOpacity(0.10)),
+          overlayColor: WidgetStatePropertyAll(
+            scheme.primary.withOpacity(0.10),
+          ),
         ),
       ),
       tabBarTheme: TabBarThemeData(
@@ -181,13 +186,13 @@ class GopeedTheme {
         side: BorderSide(color: outline.withOpacity(0.80)),
       ),
       switchTheme: SwitchThemeData(
-        trackOutlineColor: MaterialStatePropertyAll(outline.withOpacity(0.45)),
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) return scheme.primary;
+        trackOutlineColor: WidgetStatePropertyAll(outline.withOpacity(0.45)),
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return scheme.primary;
           return scheme.onSurface.withOpacity(0.75);
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return scheme.primary.withOpacity(0.28);
           }
           return scheme.onSurface.withOpacity(0.10);
