@@ -58,7 +58,7 @@ class LiquidGlassButton extends StatelessWidget {
                   Icon(icon),
                   const SizedBox(width: 8),
                 ],
-                Flexible(child: child),
+                child,
               ],
             ),
           ),
