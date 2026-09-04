@@ -110,7 +110,7 @@ class _LiquidGlassToggleState extends State<LiquidGlassToggle> {
   @override
   void didUpdateWidget(covariant LiquidGlassToggle oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_dragging && oldWidget.value != widget.value) {
+    if (!_dragging && !_pressed) {
       _fraction = widget.value ? 1 : 0;
     }
   }
