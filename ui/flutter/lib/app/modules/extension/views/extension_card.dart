@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../api/api.dart';
 import '../../../../database/database.dart';
+import '../../../../theme/liquid_controls.dart';
 import '../../../../theme/liquid_glass.dart';
 import '../../../../util/util.dart';
 import '../controllers/extension_controller.dart';
@@ -86,10 +87,12 @@ class ExtensionCard extends StatelessWidget {
                       ),
                     ),
                     if (installed != null)
-                      Transform.scale(
-                        scale: 0.82,
-                        child: Switch(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 2),
+                        child: LiquidGlassToggle(
                           value: !installed.disabled,
+                          width: 52,
+                          height: 28,
                           onChanged: busy || onToggle == null
                               ? null
                               : (value) async {
