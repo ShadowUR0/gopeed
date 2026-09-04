@@ -1,0 +1,61 @@
+name: liquid-glass-android-ci
+
+on:
+  push:
+    branches:
+      - ci/liquid-glass-build-check
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: "1.25"
+  FLUTTER_VERSION: "3.41.6"
+
+jobs:
+  android-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Build Go Android library
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go get golang.org/x/mobile/bind
+          gomobile init
+          mkdir -p ui/flutter/android/app/libs
+          gomobile bind -tags nosqlite -ldflags="-w -s -checklinkname=0 -X github.com/GopeedLab/gopeed/pkg/base.Version=0.0.0-ci" -o ui/flutter/android/app/libs/libgopeed.aar -target=android -androidapi 21 -javapkg=com.gopeed github.com/GopeedLab/gopeed/bind/mobile
+
+      - name: Resolve Flutter dependencies
+        working-directory: ui/flutter
+        run: flutter pub get
+
+      - name: Analyze Flutter UI
+        working-directory: ui/flutter
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build Android debug APK
+        working-directory: ui/flutter
+        run: flutter build apk --debug --dart-define="UPDATE_CHANNEL=androidApk"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gopeed-liquid-glass-debug-apk
+          path: ui/flutter/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
