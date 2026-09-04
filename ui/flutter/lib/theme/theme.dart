@@ -23,6 +23,7 @@ class GopeedTheme {
     final glass = LiquidGlassPalette.glassTint(brightness);
     final strongGlass = LiquidGlassPalette.strongGlassTint(brightness);
     final outline = LiquidGlassPalette.border(brightness);
+    final controlThumb = dark ? const Color(0xFFF1F5F3) : Colors.white;
     final radius16 = BorderRadius.circular(16);
     final radius20 = BorderRadius.circular(20);
     final radius24 = BorderRadius.circular(24);
@@ -170,6 +171,34 @@ class GopeedTheme {
           side: BorderSide(color: outline.withOpacity(0.65)),
         ),
       ),
+      snackBarTheme: SnackBarThemeData(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: strongGlass,
+        contentTextStyle: base.textTheme.bodyMedium?.copyWith(
+          color: scheme.onSurface,
+        ),
+        actionTextColor: scheme.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius20,
+          side: BorderSide(color: outline.withOpacity(0.60)),
+        ),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: strongGlass,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: outline.withOpacity(0.58)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(dark ? 0.22 : 0.09),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        textStyle: base.textTheme.bodySmall?.copyWith(color: scheme.onSurface),
+      ),
       dividerTheme: DividerThemeData(
         color: scheme.onSurface.withOpacity(dark ? 0.10 : 0.08),
         thickness: 1,
@@ -181,22 +210,68 @@ class GopeedTheme {
         linearMinHeight: 3,
         borderRadius: BorderRadius.circular(99),
       ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: scheme.primary.withOpacity(0.82),
+        inactiveTrackColor: scheme.onSurface.withOpacity(dark ? 0.16 : 0.10),
+        disabledActiveTrackColor: scheme.onSurface.withOpacity(0.12),
+        disabledInactiveTrackColor: scheme.onSurface.withOpacity(0.06),
+        thumbColor: controlThumb,
+        disabledThumbColor: controlThumb.withOpacity(0.45),
+        overlayColor: scheme.primary.withOpacity(0.12),
+        valueIndicatorColor: strongGlass,
+        valueIndicatorTextStyle: base.textTheme.labelMedium?.copyWith(
+          color: scheme.onSurface,
+        ),
+        trackHeight: 5,
+        thumbShape: const RoundSliderThumbShape(
+          enabledThumbRadius: 11,
+          disabledThumbRadius: 9,
+          elevation: 1,
+          pressedElevation: 2,
+        ),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+      ),
       checkboxTheme: CheckboxThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         side: BorderSide(color: outline.withOpacity(0.80)),
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return scheme.primary;
+          return glass;
+        }),
+        checkColor: WidgetStatePropertyAll(scheme.onPrimary),
+        overlayColor: WidgetStatePropertyAll(scheme.primary.withOpacity(0.10)),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return scheme.primary;
+          return scheme.onSurface.withOpacity(0.52);
+        }),
+        overlayColor: WidgetStatePropertyAll(scheme.primary.withOpacity(0.10)),
       ),
       switchTheme: SwitchThemeData(
-        trackOutlineColor: WidgetStatePropertyAll(outline.withOpacity(0.45)),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.white.withOpacity(dark ? 0.10 : 0.24);
+          }
+          return outline.withOpacity(0.45);
+        }),
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return scheme.primary;
-          return scheme.onSurface.withOpacity(0.75);
+          if (states.contains(WidgetState.disabled)) {
+            return controlThumb.withOpacity(0.48);
+          }
+          return controlThumb;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return scheme.primary.withOpacity(0.28);
+          if (states.contains(WidgetState.disabled)) {
+            return scheme.onSurface.withOpacity(0.07);
           }
-          return scheme.onSurface.withOpacity(0.10);
+          if (states.contains(WidgetState.selected)) {
+            return scheme.primary.withOpacity(dark ? 0.78 : 0.88);
+          }
+          return scheme.onSurface.withOpacity(dark ? 0.18 : 0.12);
         }),
+        overlayColor: WidgetStatePropertyAll(scheme.primary.withOpacity(0.10)),
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: Colors.transparent,
