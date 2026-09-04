@@ -56,7 +56,6 @@ class HomeView extends GetView<HomeController> {
 
       return Scaffold(
         backgroundColor: Colors.transparent,
-        extendBody: true,
         body: Row(
           children: [
             if (!narrow)
