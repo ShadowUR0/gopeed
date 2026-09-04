@@ -29,6 +29,7 @@ class TaskView extends GetView<TaskController> {
   @override
   Widget build(BuildContext context) {
     final selectTask = controller.selectTask;
+    final theme = Theme.of(context);
 
     return DefaultTabController(
       length: 2,
@@ -87,20 +88,35 @@ class TaskView extends GetView<TaskController> {
           ],
         ),
         endDrawer: Drawer(
-          child: Obx(() => ListView(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.horizontal(left: Radius.circular(28)),
+          ),
+          child: LiquidGlassSurface(
+            radius: 28,
+            blur: 24,
+            tint: LiquidGlassPalette.strongGlassTint(theme.brightness),
+            child: Obx(
+              () => ListView(
                 padding: EdgeInsets.zero,
                 children: [
                   SizedBox(
                     height: MediaQuery.of(context).padding.top + 65,
                     child: DrawerHeader(
-                        child: Text(
-                      'taskDetail'.tr,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    )),
+                      child: Text(
+                        'taskDetail'.tr,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   ),
                   ListTile(
-                      title: Text('taskName'.tr),
-                      subtitle: buildTooltipSubtitle(selectTask.value?.name)),
+                    title: Text('taskName'.tr),
+                    subtitle: buildTooltipSubtitle(selectTask.value?.name),
+                  ),
                   ListTile(
                     title: Text('taskUrl'.tr),
                     subtitle:
@@ -119,7 +135,9 @@ class TaskView extends GetView<TaskController> {
                     ),
                   ),
                 ],
-              )),
+              ),
+            ),
+          ),
         ),
       ),
     );
