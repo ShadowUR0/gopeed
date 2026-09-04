@@ -146,7 +146,8 @@ class _LiquidGlassToggleState extends State<LiquidGlassToggle> {
     final delta = (details.primaryDelta ?? 0) * (ltr ? 1 : -1);
     final travel = (widget.width - widget.height).clamp(1.0, 999.0);
     setState(() {
-      _fraction = (_fraction + delta / travel).clamp(0.0, 1.0);
+      _fraction =
+          (_fraction + delta / travel).clamp(0.0, 1.0).toDouble();
     });
   }
 
