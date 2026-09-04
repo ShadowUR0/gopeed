@@ -161,7 +161,9 @@ class _LiquidGlassSurfaceState extends State<LiquidGlassSurface> {
     final brightness = theme.brightness;
     final dark = brightness == Brightness.dark;
     final radius = BorderRadius.circular(widget.radius);
-    final innerRadius = BorderRadius.circular((widget.radius - 1).clamp(0, 999));
+    final innerRadius = BorderRadius.circular(
+      (widget.radius - 1).clamp(0.0, 999.0).toDouble(),
+    );
     final tint = widget.tint ?? LiquidGlassPalette.glassTint(brightness);
     final accent = theme.colorScheme.primary;
 
@@ -228,10 +230,10 @@ class _LiquidGlassSurfaceState extends State<LiquidGlassSurface> {
                         ),
                       ),
                     ),
-                    AnimatedOpacity(
-                      opacity: _pressed ? 1 : 0.62,
-                      duration: const Duration(milliseconds: 160),
-                      child: Positioned.fill(
+                    Positioned.fill(
+                      child: AnimatedOpacity(
+                        opacity: _pressed ? 1 : 0.62,
+                        duration: const Duration(milliseconds: 160),
                         child: IgnorePointer(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
