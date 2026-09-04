@@ -274,3 +274,170 @@ class _LiquidGlassToggleState extends State<LiquidGlassToggle> {
     );
   }
 }
+
+class LiquidSegmentItem {
+  final IconData icon;
+  final String? tooltip;
+
+  const LiquidSegmentItem({
+    required this.icon,
+    this.tooltip,
+  });
+}
+
+/// Compact segmented glass control inspired by the moving selection surface in
+/// AndroidLiquidGlass's LiquidBottomTabs. It supports async selection guards so
+/// callers such as Android storage selection can validate permissions before
+/// changing the visible state.
+class LiquidGlassSegmentedControl extends StatefulWidget {
+  final List<LiquidSegmentItem> items;
+  final int? selectedIndex;
+  final ValueChanged<int?>? onChanged;
+  final Future<bool> Function(int index)? canSelect;
+  final bool allowEmptySelection;
+  final double height;
+  final double itemWidth;
+
+  const LiquidGlassSegmentedControl({
+    super.key,
+    required this.items,
+    required this.selectedIndex,
+    required this.onChanged,
+    this.canSelect,
+    this.allowEmptySelection = false,
+    this.height = 40,
+    this.itemWidth = 46,
+  }) : assert(items.length > 0);
+
+  @override
+  State<LiquidGlassSegmentedControl> createState() =>
+      _LiquidGlassSegmentedControlState();
+}
+
+class _LiquidGlassSegmentedControlState
+    extends State<LiquidGlassSegmentedControl> {
+  int? _selectedIndex;
+  bool _busy = false;
+
+  bool get _enabled => widget.onChanged != null && !_busy;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.selectedIndex;
+  }
+
+  @override
+  void didUpdateWidget(covariant LiquidGlassSegmentedControl oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_busy && oldWidget.selectedIndex != widget.selectedIndex) {
+      _selectedIndex = widget.selectedIndex;
+    }
+  }
+
+  Future<void> _select(int index) async {
+    if (!_enabled || index < 0 || index >= widget.items.length) return;
+
+    final target = widget.allowEmptySelection && _selectedIndex == index
+        ? null
+        : index;
+    if (target == _selectedIndex && !widget.allowEmptySelection) return;
+
+    if (target != null && widget.canSelect != null) {
+      setState(() => _busy = true);
+      bool allowed = false;
+      try {
+        allowed = await widget.canSelect!(target);
+      } finally {
+        if (mounted) setState(() => _busy = false);
+      }
+      if (!mounted || !allowed) return;
+    }
+
+    setState(() => _selectedIndex = target);
+    HapticFeedback.selectionClick();
+    widget.onChanged?.call(target);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+
+    return AnimatedOpacity(
+      opacity: widget.onChanged == null ? 0.48 : 1,
+      duration: const Duration(milliseconds: 160),
+      child: LiquidGlassSurface(
+        radius: widget.height / 2,
+        blur: 10,
+        tint: dark ? const Color(0x2C17201D) : const Color(0x3DFFFFFF),
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(widget.items.length, (index) {
+            final item = widget.items[index];
+            final selected = _selectedIndex == index;
+            final color = selected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.onSurface.withOpacity(0.58);
+
+            Widget segment = Semantics(
+              selected: selected,
+              button: true,
+              enabled: _enabled,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _enabled ? () => _select(index) : null,
+                  borderRadius: BorderRadius.circular((widget.height - 8) / 2),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    width: widget.itemWidth,
+                    height: widget.height - 8,
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular((widget.height - 8) / 2),
+                      color: selected
+                          ? theme.colorScheme.primary
+                              .withOpacity(dark ? 0.18 : 0.13)
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: selected
+                            ? Colors.white.withOpacity(dark ? 0.14 : 0.56)
+                            : Colors.transparent,
+                      ),
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(dark ? 0.14 : 0.055),
+                                blurRadius: 7,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Center(
+                      child: AnimatedScale(
+                        scale: selected ? 1.06 : 1,
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutBack,
+                        child: Icon(item.icon, size: 20, color: color),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+
+            if (item.tooltip != null && item.tooltip!.isNotEmpty) {
+              segment = Tooltip(message: item.tooltip!, child: segment);
+            }
+            return segment;
+          }),
+        ),
+      ),
+    );
+  }
+}
