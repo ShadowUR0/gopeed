@@ -7,8 +7,8 @@ import 'package:get/get.dart';
 import 'package:lecle_downloads_path_provider/lecle_downloads_path_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:toggle_switch/toggle_switch.dart';
 
+import '../../theme/liquid_controls.dart';
 import '../../util/message.dart';
 import '../../util/util.dart';
 
@@ -121,28 +121,75 @@ class _DirectorySelectorState extends State<DirectorySelector> {
     Widget? buildSelectWidget() {
       if (Util.isDesktop()) {
         return IconButton(
-            icon: const Icon(Icons.folder_open),
-            onPressed: () async {
-              var dir = await FilePicker.platform.getDirectoryPath();
-              if (dir != null) {
-                updateDirectorySelection(widget.controller, dir,
-                    onChanged: widget.onEditComplete);
-              }
-            });
+          icon: const Icon(Icons.folder_open_rounded),
+          onPressed: () async {
+            final dir = await FilePicker.platform.getDirectoryPath();
+            if (dir != null) {
+              updateDirectorySelection(
+                widget.controller,
+                dir,
+                onChanged: widget.onEditComplete,
+              );
+            }
+          },
+        );
       }
-      // After Android 11, access to external storage is increasingly restricted, so it no longer supports selecting the download directory. However, if you do not download in external storage, all downloaded files will be deleted after the application is uninstalled.
-      // Fortunately, so far, most Android devices can still access the system download directory.
-      // For the sake of user experience, it is decided to only support selecting the application's internal directory and the system download directory. Also, a test for file write permission is performed when selecting the system download directory. If it cannot be written, selection is not allowed.
+
+      // Android 11+ increasingly restricts arbitrary external-storage access.
+      // Keep Gopeed's existing two safe choices: app storage and Downloads.
       if (Util.isAndroid() && widget.showAndoirdToggle) {
         final isSwitchToDownloadDir =
             widget.controller.text.endsWith('/Gopeed');
 
-        return ToggleSwitch(
-          initialLabelIndex: isSwitchToDownloadDir ? 1 : 0,
-          totalSwitches: 2,
-          icons: const [Icons.home, Icons.download],
-          customWidths: const [50, 50],
-          onToggle: (index) async {
+        Future<bool> canSelect(int index) async {
+          if (index == 0) {
+            return true;
+          }
+
+          final downloadDir =
+              (await DownloadsPath.downloadsDirectory())?.path;
+          if (downloadDir == null) {
+            return false;
+          }
+
+          // Check and request external storage permission when SDK < 30.
+          if ((await deviceInfo.androidInfo).version.sdkInt < 30) {
+            var status = await Permission.storage.status;
+            if (!status.isGranted) {
+              status = await Permission.storage.request();
+              if (!status.isGranted) {
+                showErrorMessage('noStoragePermission'.tr);
+                return false;
+              }
+            }
+          }
+
+          // Preserve the original write-permission test before accepting the
+          // Downloads destination.
+          final fileRandomName =
+              'test_${DateTime.now().millisecondsSinceEpoch}.tmp';
+          final testFile = File('$downloadDir/Gopeed/$fileRandomName');
+          try {
+            await testFile.create(recursive: true);
+            await testFile.writeAsString('test');
+            await testFile.delete();
+            return true;
+          } catch (e) {
+            showErrorMessage(e);
+            return false;
+          }
+        }
+
+        return LiquidGlassSegmentedControl(
+          selectedIndex: isSwitchToDownloadDir ? 1 : 0,
+          items: const [
+            LiquidSegmentItem(icon: Icons.home_rounded),
+            LiquidSegmentItem(icon: Icons.download_rounded),
+          ],
+          height: 40,
+          itemWidth: 46,
+          canSelect: canSelect,
+          onChanged: (index) async {
             if (index == 0) {
               updateDirectorySelection(
                 widget.controller,
@@ -150,49 +197,14 @@ class _DirectorySelectorState extends State<DirectorySelector> {
                     (await getApplicationDocumentsDirectory()).path,
                 onChanged: widget.onEditComplete,
               );
-            } else {
+            } else if (index == 1) {
+              final downloads = await DownloadsPath.downloadsDirectory();
+              if (downloads == null) return;
               updateDirectorySelection(
                 widget.controller,
-                '${(await DownloadsPath.downloadsDirectory())!.path}/Gopeed',
+                '${downloads.path}/Gopeed',
                 onChanged: widget.onEditComplete,
               );
-            }
-          },
-          cancelToggle: (index) async {
-            if (index == 0) {
-              return false;
-            }
-
-            final downloadDir =
-                (await DownloadsPath.downloadsDirectory())?.path;
-            if (downloadDir == null) {
-              return true;
-            }
-
-            // Check and request external storage permission when sdk version < 30 (android 11)
-            if ((await deviceInfo.androidInfo).version.sdkInt < 30) {
-              var status = await Permission.storage.status;
-              if (!status.isGranted) {
-                status = await Permission.storage.request();
-                if (!status.isGranted) {
-                  showErrorMessage('noStoragePermission'.tr);
-                  return true;
-                }
-              }
-            }
-
-            // Check write permission
-            final fileRandomeName =
-                "test_${DateTime.now().millisecondsSinceEpoch}.tmp";
-            final testFile = File('$downloadDir/Gopeed/$fileRandomeName');
-            try {
-              await testFile.create(recursive: true);
-              await testFile.writeAsString('test');
-              await testFile.delete();
-              return false;
-            } catch (e) {
-              showErrorMessage(e);
-              return true;
             }
           },
         ).marginOnly(left: 10);
@@ -204,7 +216,7 @@ class _DirectorySelectorState extends State<DirectorySelector> {
       if (!widget.showPlaceholderButton) return null;
 
       return PopupMenuButton<String>(
-        icon: const Icon(Icons.data_object),
+        icon: const Icon(Icons.data_object_rounded),
         tooltip: 'insertPlaceholder'.tr,
         onSelected: (String placeholder) {
           final currentText = widget.controller.text;
@@ -255,66 +267,70 @@ class _DirectorySelectorState extends State<DirectorySelector> {
     return Row(
       children: [
         Expanded(
-            child: ValueListenableBuilder<TextEditingValue>(
-          valueListenable: widget.controller,
-          builder: (context, value, child) {
-            Widget? suffix;
-            if (widget.showRenderedPlaceholders && value.text.contains('%')) {
-              final renderedPath = renderPathPlaceholders(value.text);
-              // Show rendered path as a chip/badge in the input field
-              suffix = Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.arrow_forward,
-                        size: 14, color: Colors.blue[700]),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        renderedPath,
-                        style: TextStyle(
-                          color: Colors.blue[700],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+          child: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: widget.controller,
+            builder: (context, value, child) {
+              Widget? suffix;
+              if (widget.showRenderedPlaceholders && value.text.contains('%')) {
+                final renderedPath = renderPathPlaceholders(value.text);
+                final theme = Theme.of(context);
+                suffix = Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withOpacity(0.24),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: theme.colorScheme.primary,
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          renderedPath,
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-            return TextFormField(
-              readOnly:
-                  widget.allowEdit ? false : (Util.isWeb() ? false : true),
-              controller: widget.controller,
-              decoration: widget.showLabel
-                  ? InputDecoration(
-                      labelText: 'downloadDir'.tr,
-                      suffix: suffix,
-                    )
-                  : InputDecoration(
-                      suffix: suffix,
-                    ),
-              validator: (v) {
-                return v!.trim().isNotEmpty ? null : 'downloadDirValid'.tr;
-              },
-              onEditingComplete: widget.onEditComplete,
-              onTapOutside: (event) {
-                // Call onEditComplete when user taps outside the field
-                widget.onEditComplete?.call();
-              },
-            );
-          },
-        )),
+              return TextFormField(
+                readOnly:
+                    widget.allowEdit ? false : (Util.isWeb() ? false : true),
+                controller: widget.controller,
+                decoration: widget.showLabel
+                    ? InputDecoration(
+                        labelText: 'downloadDir'.tr,
+                        suffix: suffix,
+                      )
+                    : InputDecoration(suffix: suffix),
+                validator: (v) {
+                  return v!.trim().isNotEmpty ? null : 'downloadDirValid'.tr;
+                },
+                onEditingComplete: widget.onEditComplete,
+                onTapOutside: (event) {
+                  widget.onEditComplete?.call();
+                },
+              );
+            },
+          ),
+        ),
         buildSelectWidget(),
         buildPlaceholderButton(),
       ].where((e) => e != null).map((e) => e!).toList(),
