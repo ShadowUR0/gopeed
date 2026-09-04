@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
-import 'package:window_manager/window_manager.dart'; // Import the required packages
+import 'package:window_manager/window_manager.dart';
 
 import '../../../../i18n/message.dart';
+import '../../../../theme/liquid_glass.dart';
 import '../../../../theme/theme.dart';
 import '../../../../util/locale_manager.dart';
-import '../../../../util/util.dart'; // Import the required packages
+import '../../../../util/util.dart';
 import '../../../rpc/webview_rpc_overlay.dart';
 import '../../../rpc/webview_rpc_service.dart';
 import '../../../routes/app_pages.dart';
@@ -36,20 +37,20 @@ class AppView extends GetView<AppController> {
         ],
         supportedLocales: messages.keys.keys.map((e) => toLocale(e)).toList(),
         getPages: AppPages.routes,
-
-        // Add listening to theme changes, set the title bar color according to the current system theme.
         builder: (context, child) {
-          // if platform is desktop
           if (Util.isDesktop()) {
-            // actual brightness of the UI
-            Brightness brightness = Theme.of(context).brightness;
-            // Set the title bar to use the actual brightness of the UI
+            final brightness = Theme.of(context).brightness;
             windowManager.setBrightness(brightness);
           }
-          // Fix for GetX Overlay issue with Flutter 3.38.1+
-          // Reference: https://github.com/jonataslaw/getx/issues/3425
+
+          final app = LiquidGlassBackground(
+            child: child ?? const SizedBox.shrink(),
+          );
+
+          // Keep the GetX overlay compatibility fix while placing the entire
+          // route tree above the liquid backdrop. RPC overlays stay on top.
           final entries = <OverlayEntry>[
-            OverlayEntry(builder: (_) => child!),
+            OverlayEntry(builder: (_) => app),
           ];
           if (WebViewRpcService.instance.supported) {
             entries.add(OverlayEntry(builder: (_) => const WebViewRpcOverlay()));
