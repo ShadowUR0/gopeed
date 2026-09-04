@@ -53,9 +53,45 @@ class HomeView extends GetView<HomeController> {
 
       final narrow = ResponsiveBuilder.isNarrow(context);
       final routes = GetRouterOutlet(initialRoute: Routes.TASK);
+      final dark = Theme.of(context).brightness == Brightness.dark;
+
+      Widget buildRouteSurface() {
+        if (narrow) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 82),
+            child: LiquidGlassSurface(
+              radius: 26,
+              blur: 10,
+              tint: dark
+                  ? const Color(0x24141E1B)
+                  : const Color(0x30FFFFFF),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: routes,
+              ),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(10, 12, 12, 12),
+          child: LiquidGlassSurface(
+            radius: 30,
+            blur: 14,
+            tint: dark
+                ? const Color(0x30141E1B)
+                : const Color(0x38FFFFFF),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(29),
+              child: routes,
+            ),
+          ),
+        );
+      }
 
       return Scaffold(
         backgroundColor: Colors.transparent,
+        extendBody: true,
         body: Row(
           children: [
             if (!narrow)
@@ -64,24 +100,7 @@ class HomeView extends GetView<HomeController> {
                     selectedIndex: controller.currentIndex.value,
                     onSelected: navigate,
                   )),
-            Expanded(
-              child: narrow
-                  ? routes
-                  : Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 12, 12, 12),
-                      child: LiquidGlassSurface(
-                        radius: 30,
-                        blur: 14,
-                        tint: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0x30141E1B)
-                            : const Color(0x38FFFFFF),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(29),
-                          child: routes,
-                        ),
-                      ),
-                    ),
-            ),
+            Expanded(child: buildRouteSurface()),
           ],
         ),
         bottomNavigationBar: narrow
