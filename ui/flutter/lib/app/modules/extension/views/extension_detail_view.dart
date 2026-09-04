@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../api/model/extension.dart';
 import '../../../../api/model/store_extension.dart';
+import '../../../../theme/liquid_glass.dart';
 import '../../../../util/message.dart';
 import '../../../../util/util.dart';
 import '../controllers/extension_controller.dart';
@@ -26,143 +27,176 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 12, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      extension.title,
-                      style: Theme.of(context).textTheme.titleLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: onClose,
-                    icon: const Icon(Icons.close),
-                  )
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: Obx(() {
-                final localInstalled =
-                    installed ?? controller.findInstalled(extension);
-                final canUpdate = controller.canUpdateFromStore(extension);
-                final busy =
-                    controller.busyExtensionIds.contains(extension.id) ||
-                        (localInstalled != null &&
-                            controller.busyExtensionIds
-                                .contains(localInstalled.identity));
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
 
-                return ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: Colors.transparent,
+      child: SafeArea(
+        minimum: const EdgeInsets.all(8),
+        child: LiquidGlassSurface(
+          radius: 28,
+          blur: 22,
+          tint: dark ? const Color(0x8A121B18) : const Color(0xA8FFFFFF),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(27),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 12, 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          extension.title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: onClose,
+                        icon: const Icon(Icons.close_rounded),
+                      )
+                    ],
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  color: theme.colorScheme.onSurface.withOpacity(0.08),
+                ),
+                Expanded(
+                  child: Obx(() {
+                    final localInstalled =
+                        installed ?? controller.findInstalled(extension);
+                    final canUpdate = controller.canUpdateFromStore(extension);
+                    final busy =
+                        controller.busyExtensionIds.contains(extension.id) ||
+                            (localInstalled != null &&
+                                controller.busyExtensionIds
+                                    .contains(localInstalled.identity));
+
+                    return ListView(
+                      padding: const EdgeInsets.all(18),
                       children: [
-                        _buildIcon(),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  '${extension.author} • v${extension.version}'),
-                              const SizedBox(height: 6),
-                              Text(
-                                extension.description,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildIcon(),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${extension.author} • v${extension.version}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurface
+                                          .withOpacity(0.58),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 7),
+                                  Text(
+                                    extension.description,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      height: 1.38,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (localInstalled == null)
-                          ElevatedButton.icon(
-                            onPressed: busy
-                                ? null
-                                : () async {
-                                    try {
-                                      await controller
-                                          .installFromStore(extension);
-                                      showMessage('tip'.tr,
-                                          'extensionInstallSuccess'.tr);
-                                    } catch (e) {
-                                      showErrorMessage(e);
-                                    }
-                                  },
-                            icon: busy
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.download),
-                            label: Text('extensionInstall'.tr),
-                          ),
-                        if (localInstalled != null && canUpdate)
-                          ElevatedButton.icon(
-                            onPressed: busy
-                                ? null
-                                : () async {
-                                    try {
-                                      await controller
-                                          .upgradeExtension(localInstalled);
-                                      showMessage('tip'.tr,
-                                          'extensionUpdateSuccess'.tr);
-                                    } catch (e) {
-                                      showErrorMessage(e);
-                                    }
-                                  },
-                            icon: busy
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.refresh_rounded),
-                            label: Text('newVersionUpdate'.tr),
-                          ),
-                        if ((extension.homepage ?? '').isNotEmpty)
-                          OutlinedButton.icon(
-                            onPressed: () =>
-                                launchUrl(Uri.parse(extension.homepage!)),
-                            icon: const Icon(Icons.home_outlined),
-                            label: Text('homepage'.tr),
-                          ),
-                        OutlinedButton.icon(
-                          onPressed: () =>
-                              launchUrl(Uri.parse(extension.repoUrl)),
-                          icon: const Icon(Icons.code),
-                          label: const Text('GitHub'),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            if (localInstalled == null)
+                              ElevatedButton.icon(
+                                onPressed: busy
+                                    ? null
+                                    : () async {
+                                        try {
+                                          await controller
+                                              .installFromStore(extension);
+                                          showMessage(
+                                            'tip'.tr,
+                                            'extensionInstallSuccess'.tr,
+                                          );
+                                        } catch (e) {
+                                          showErrorMessage(e);
+                                        }
+                                      },
+                                icon: busy
+                                    ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.download_rounded),
+                                label: Text('extensionInstall'.tr),
+                              ),
+                            if (localInstalled != null && canUpdate)
+                              ElevatedButton.icon(
+                                onPressed: busy
+                                    ? null
+                                    : () async {
+                                        try {
+                                          await controller
+                                              .upgradeExtension(localInstalled);
+                                          showMessage(
+                                            'tip'.tr,
+                                            'extensionUpdateSuccess'.tr,
+                                          );
+                                        } catch (e) {
+                                          showErrorMessage(e);
+                                        }
+                                      },
+                                icon: busy
+                                    ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.refresh_rounded),
+                                label: Text('newVersionUpdate'.tr),
+                              ),
+                            if ((extension.homepage ?? '').isNotEmpty)
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    launchUrl(Uri.parse(extension.homepage!)),
+                                icon: const Icon(Icons.home_outlined),
+                                label: Text('homepage'.tr),
+                              ),
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  launchUrl(Uri.parse(extension.repoUrl)),
+                              icon: const Icon(Icons.code_rounded),
+                              label: const Text('GitHub'),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 16),
+                        Divider(
+                          height: 1,
+                          color: theme.colorScheme.onSurface.withOpacity(0.08),
+                        ),
+                        const SizedBox(height: 14),
+                        _buildReadme(context, localInstalled),
                       ],
-                    ),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1),
-                    const SizedBox(height: 12),
-                    _buildReadme(context, localInstalled),
-                  ],
-                );
-              }),
+                    );
+                  }),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -175,8 +209,10 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
         final info = snapshot.data;
         final markdown = info?.content ?? extension.readme ?? '';
         if (markdown.trim().isEmpty) {
-          return Text('No README',
-              style: Theme.of(context).textTheme.bodyMedium);
+          return Text(
+            'No README',
+            style: Theme.of(context).textTheme.bodyMedium,
+          );
         }
 
         return MarkdownBody(
@@ -186,8 +222,10 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
             if (href == null || href.isEmpty) return;
             final resolved = _resolvePath(href, info, forImage: false);
             if (resolved == null) return;
-            launchUrl(Uri.parse(resolved),
-                mode: LaunchMode.externalApplication);
+            launchUrl(
+              Uri.parse(resolved),
+              mode: LaunchMode.externalApplication,
+            );
           },
           imageBuilder: (uri, title, alt) {
             final resolved = _resolvePath(uri.toString(), info, forImage: true);
@@ -195,19 +233,25 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
             if (resolved.startsWith('file://')) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Image.file(
-                  File(Uri.parse(resolved).toFilePath()),
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(
+                    File(Uri.parse(resolved).toFilePath()),
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
                 ),
               );
             }
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Image.network(
-                resolved,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  resolved,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
               ),
             );
           },
@@ -251,8 +295,11 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
     );
   }
 
-  String? _resolvePath(String raw, _ReadmeInfo? info,
-      {required bool forImage}) {
+  String? _resolvePath(
+    String raw,
+    _ReadmeInfo? info, {
+    required bool forImage,
+  }) {
     final value = raw.trim();
     if (value.isEmpty) return null;
     final uri = Uri.tryParse(value);
@@ -269,8 +316,9 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
       return Uri.file(absolute).toString();
     }
 
-    final ref =
-        extension.commitSha?.isNotEmpty == true ? extension.commitSha! : 'HEAD';
+    final ref = extension.commitSha?.isNotEmpty == true
+        ? extension.commitSha!
+        : 'HEAD';
     final dir = (extension.directory ?? '').trim();
     final baseSegments = [
       if (dir.isNotEmpty) ...dir.split('/').where((e) => e.isNotEmpty),
@@ -278,28 +326,41 @@ class ExtensionDetailDrawer extends GetView<ExtensionController> {
     ];
 
     final base = forImage
-        ? Uri.https('raw.githubusercontent.com',
-            '/${extension.repoFullName}/$ref/${baseSegments.join('/')}')
-        : Uri.https('github.com',
-            '/${extension.repoFullName}/blob/$ref/${baseSegments.join('/')}');
+        ? Uri.https(
+            'raw.githubusercontent.com',
+            '/${extension.repoFullName}/$ref/${baseSegments.join('/')}',
+          )
+        : Uri.https(
+            'github.com',
+            '/${extension.repoFullName}/blob/$ref/${baseSegments.join('/')}',
+          );
     return base.resolve(value).toString();
   }
 
   Widget _buildIcon() {
     if ((extension.icon ?? '').isEmpty) {
-      return Image.asset('assets/extension/default_icon.png',
-          width: 56, height: 56);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Image.asset(
+          'assets/extension/default_icon.png',
+          width: 56,
+          height: 56,
+        ),
+      );
     }
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Image.network(
         extension.icon!,
         width: 56,
         height: 56,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) {
-          return Image.asset('assets/extension/default_icon.png',
-              width: 56, height: 56);
+          return Image.asset(
+            'assets/extension/default_icon.png',
+            width: 56,
+            height: 56,
+          );
         },
       ),
     );
