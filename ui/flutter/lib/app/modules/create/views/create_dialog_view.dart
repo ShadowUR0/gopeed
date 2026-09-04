@@ -9,6 +9,7 @@ import '../../../../api/model/create_task_batch.dart';
 import '../../../../api/model/options.dart';
 import '../../../../api/model/resolve_result.dart';
 import '../../../../api/model/resolve_task.dart';
+import '../../../../theme/liquid_controls.dart';
 import '../../../../theme/liquid_glass.dart';
 import '../../../../util/message.dart';
 import '../../../views/directory_selector.dart';
@@ -251,8 +252,13 @@ class _CreateDialogViewState extends State<CreateDialogView> {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 180),
                       child: _resolving
-                          ? const LinearProgressIndicator(key: ValueKey('loading'))
-                          : const SizedBox(key: ValueKey('idle'), height: 3),
+                          ? const LinearProgressIndicator(
+                              key: ValueKey('loading'),
+                            )
+                          : const SizedBox(
+                              key: ValueKey('idle'),
+                              height: 3,
+                            ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
@@ -260,7 +266,8 @@ class _CreateDialogViewState extends State<CreateDialogView> {
                       enabled: !_creating,
                       decoration: InputDecoration(
                         labelText: 'rename'.tr,
-                        prefixIcon: const Icon(Icons.insert_drive_file_rounded),
+                        prefixIcon:
+                            const Icon(Icons.insert_drive_file_rounded),
                       ),
                       maxLines: 1,
                     ),
@@ -275,7 +282,8 @@ class _CreateDialogViewState extends State<CreateDialogView> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.errorContainer.withOpacity(0.55),
+                          color: theme.colorScheme.errorContainer
+                              .withOpacity(0.55),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: theme.colorScheme.error.withOpacity(0.25),
@@ -300,16 +308,21 @@ class _CreateDialogViewState extends State<CreateDialogView> {
                           child: Text('cancel'.tr),
                         ),
                         const SizedBox(width: 10),
-                        FilledButton.icon(
-                          onPressed:
-                              (_resolving || _creating) ? null : _confirm,
-                          icon: _creating
-                              ? const SizedBox.square(
-                                  dimension: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.download_rounded),
-                          label: Text('download'.tr),
+                        SizedBox(
+                          height: 48,
+                          child: LiquidGlassButton(
+                            onPressed:
+                                (_resolving || _creating) ? null : _confirm,
+                            icon: _creating ? null : Icons.download_rounded,
+                            child: _creating
+                                ? const SizedBox.square(
+                                    dimension: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text('download'.tr),
+                          ),
                         ),
                       ],
                     ),
